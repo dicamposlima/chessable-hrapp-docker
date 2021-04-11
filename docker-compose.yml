@@ -1,0 +1,48 @@
+version: '3.1'
+
+services:
+    chessable_db:  
+      image: mysql:5.6
+      container_name: chessable_db
+      restart: always
+      tty: true
+      environment:
+        MYSQL_DATABASE: chessable
+        MYSQL_ROOT_PASSWORD: root
+        SERVICE_TAGS: dev
+        SERVICE_NAME: mysql
+      restart: unless-stopped
+      ports:
+        - 3307:3306
+      volumes:
+        - db-data:/var/lib/mysql/
+        - ./my.cnf:/etc/mysql/my.cnf
+      networks:
+        - default
+
+    chessable_app:
+        build: 
+            context: chessable_app
+        container_name: chessable_app
+        hostname: chessable_app
+        restart: unless-stopped
+        volumes:
+            - ../chessable-hrapp-back/:/var/www/html
+        ports:
+            - "8080:8080"
+        depends_on:
+            - chessable_db
+        networks:
+            - default
+secrets:
+    db_root_password:
+        file: db_root_password.txt
+    db_password:
+        file: db_password.txt
+
+volumes:
+  db-data:
+    driver: local
+
+networks:
+    default:
